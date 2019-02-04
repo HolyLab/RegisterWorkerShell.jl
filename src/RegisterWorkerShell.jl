@@ -1,5 +1,3 @@
-__precompile__()
-
 module RegisterWorkerShell
 
 using SimpleTraits, AxisArrays, ImageAxes, ImageMetadata
@@ -17,15 +15,15 @@ via fields of an object `algorithm` which is a subtype of
 See `RegisterWorkerShell` for an overview of the API supported by
 `AbstractWorker` types.
 """
-@compat abstract type AbstractWorker end
+abstract type AbstractWorker end
 
 # Not sure about this next type...
-immutable ArrayDecl{A<:AbstractArray,N}
+struct ArrayDecl{A<:AbstractArray,N}
     arraysize::NTuple{N,Int}
 end
-ArrayDecl{A<:AbstractArray}(::Type{A}, sz) = ArrayDecl{A,ndims(A)}(sz)
+ArrayDecl(::Type{A}, sz) where {A<:AbstractArray} = ArrayDecl{A,ndims(A)}(sz)
 
-Base.eltype{A}(::ArrayDecl{A}) = eltype(A)
+Base.eltype(::ArrayDecl{A}) where {A} = eltype(A)
 
 """
 # RegisterWorkerShell
@@ -65,7 +63,7 @@ requested `AbstractArray` fields in `algorithm` will be turned into
 `SharedArray`s for `mon`. This reduces the cost of communication
 between the worker and driver processes.
 """
-function monitor{N}(algorithm::AbstractWorker, fields::Union{NTuple{N,Symbol},Vector{Symbol}}, morevars::Dict{Symbol} = Dict{Symbol,Any}())
+function monitor(algorithm::AbstractWorker, fields::Union{NTuple{N,Symbol},Vector{Symbol}}, morevars::Dict{Symbol} = Dict{Symbol,Any}()) where N
     pid = workerpid(algorithm)
     mon = Dict{Symbol,Any}()
     for f in fields
@@ -78,7 +76,7 @@ function monitor{N}(algorithm::AbstractWorker, fields::Union{NTuple{N,Symbol},Ve
     mon
 end
 
-monitor{W<:AbstractWorker}(algorithm::Vector{W}, fields, morevars::Dict{Symbol} = Dict{Symbol,Any}()) = map(alg->monitor(alg, fields, morevars), algorithm)
+monitor(algorithm::Vector{W}, fields, morevars::Dict{Symbol} = Dict{Symbol,Any}()) where {W<:AbstractWorker} = map(alg->monitor(alg, fields, morevars), algorithm)
 
 """
 `monitor!(mon, algorithm)` updates `mon` with the current values of
@@ -170,7 +168,7 @@ function maybe_sharedarray(A::AbstractArray, pid::Int=myid())
     S
 end
 
-function maybe_sharedarray{T}(::Type{T}, sz::Dims, pid=myid())
+function maybe_sharedarray(::Type{T}, sz::Dims, pid=myid()) where T
     if isbits(T)
         S = SharedArray{T}(sz, pids=union(myid(), pid))
     else
@@ -191,7 +189,7 @@ Take a time-slice of `img` at time `tindex`. If `img` doesn't have a
 `:time` axis, this just returns `img`.
 """
 getindex_t(img, tindex) = _getindex_t(img, timeaxis(img), tindex)
-_getindex_t(img, ::Void, tindex) = img
+_getindex_t(img, ::Nothing, tindex) = img
 _getindex_t(img, tax::Axis, tindex) = view(img, tax(tindex))
 
 
