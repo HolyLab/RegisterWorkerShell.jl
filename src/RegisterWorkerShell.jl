@@ -1,9 +1,10 @@
 module RegisterWorkerShell
 
-using SimpleTraits, AxisArrays, ImageAxes, ImageMetadata
+using SimpleTraits, AxisArrays, ImageAxes, ImageMetadata, Distributed, SharedArrays
 using Compat
 
 export AbstractWorker, AnyValue, ArrayDecl, close!, init!, maybe_sharedarray, monitor, monitor!, worker, workerpid, getindex_t
+export load_mm_package
 
 """
 An `AbstractWorker` type performs registration on a single
@@ -91,7 +92,7 @@ One can check whether certain parameters are being request using
 `parameter` is non-essential and time consuming.
 """
 function monitor!(mon::Dict{Symbol}, algorithm::AbstractWorker)
-    for f in fieldnames(algorithm)
+    for f in fieldnames(typeof(algorithm))
         monitor!(mon, f, getfield(algorithm, f))
     end
     mon
@@ -100,7 +101,7 @@ end
 function monitor!(mon, fn::Symbol, v::AbstractArray)
     if haskey(mon, fn)
         if isa(mon[fn], AbstractArray) && size(mon[fn]) == size(v)
-            copy!(mon[fn], v)
+            copyto!(mon[fn], v)
         else
             mon[fn] = v
         end
@@ -156,12 +157,20 @@ to return myid().
 """
 workerpid(w::AbstractWorker) = w.workerpid
 
+"""
+`load_mm_package(dev)` loads appropriate mismatch module conditioned on
+using cuda device.
+"""
+load_mm_package(dev, args...) = nothing
+
+load_mm_package(rr::RemoteChannel, args...) = load_mm_package(fetch(rr), args...)
+
 
 ## Utility functions
 function maybe_sharedarray(A::AbstractArray, pid::Int=myid())
-    if pid != myid() && isbits(eltype(A))
+    if pid != myid() && isbitstype(eltype(A))
         S = SharedArray{eltype(A)}(size(A), pids=union(myid(), pid))
-        copy!(S, A)
+        copyto!(S, A)
     else
         S = A
     end
@@ -169,10 +178,10 @@ function maybe_sharedarray(A::AbstractArray, pid::Int=myid())
 end
 
 function maybe_sharedarray(::Type{T}, sz::Dims, pid=myid()) where T
-    if isbits(T)
+    if isbitstype(T)
         S = SharedArray{T}(sz, pids=union(myid(), pid))
     else
-        S = Array{T}(sz)
+        S = Array{T}(undef, sz)
     end
     S
 end
@@ -191,6 +200,5 @@ Take a time-slice of `img` at time `tindex`. If `img` doesn't have a
 getindex_t(img, tindex) = _getindex_t(img, timeaxis(img), tindex)
 _getindex_t(img, ::Nothing, tindex) = img
 _getindex_t(img, tax::Axis, tindex) = view(img, tax(tindex))
-
 
 end
