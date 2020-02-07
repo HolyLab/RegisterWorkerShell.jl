@@ -1,7 +1,7 @@
 module RegisterWorkerShell
 
-using SimpleTraits, AxisArrays, ImageAxes, ImageMetadata, Distributed, SharedArrays
-using Compat
+using SimpleTraits, ImageAxes, ImageMetadata, Distributed, SharedArrays
+using AxisArrays: AxisArray, Axis
 
 export AbstractWorker, AnyValue, ArrayDecl, close!, init!, maybe_sharedarray, monitor, monitor!, worker, workerpid, getindex_t
 export load_mm_package
