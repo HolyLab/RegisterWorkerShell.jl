@@ -3,7 +3,7 @@ module RegisterWorkerShell
 using SimpleTraits, ImageAxes, ImageMetadata, Distributed, SharedArrays
 using AxisArrays: AxisArray, Axis
 
-export AbstractWorker, AnyValue, ArrayDecl, close!, init!, maybe_sharedarray, monitor, monitor!, worker, workerpid, getindex_t
+export AbstractWorker, AnyValue, ArrayDecl, close!, init!, maybe_sharedarray, monitor, monitor_thread, monitor!, worker, workerpid, getindex_t
 export load_mm_package
 
 """
@@ -77,7 +77,22 @@ function monitor(algorithm::AbstractWorker, fields::Union{NTuple{N,Symbol},Vecto
     mon
 end
 
-monitor(algorithm::Vector{W}, fields, morevars::Dict{Symbol} = Dict{Symbol,Any}()) where {W<:AbstractWorker} = map(alg->monitor(alg, fields, morevars), algorithm)
+function monitor_thread(algorithm::AbstractWorker, fields::Union{NTuple{N,Symbol},Vector{Symbol}}, morevars::Dict{Symbol} = Dict{Symbol,Any}()) where N
+    mon = Dict{Symbol,Any}()
+    for f in fields
+        isdefined(algorithm, f) || continue
+        mon[f] = getfield(algorithm, f)
+    end
+    for (k,v) in morevars
+        mon[k] = v
+    end
+    mon
+end
+
+monitor(algorithms::Vector{W}, fields, morevars::Dict{Symbol} = Dict{Symbol,Any}()) where {W<:AbstractWorker} =
+    map(alg->monitor(alg, fields, morevars), algorithms) # for multi-process
+monitor_thread(algorithms::Vector{W}, fields, morevars::Dict{Symbol} = Dict{Symbol,Any}()) where {W<:AbstractWorker} =
+    map(alg->monitor_thread(alg, fields, morevars), algorithms) # for multi-thread
 
 """
 `monitor!(mon, algorithm)` updates `mon` with the current values of
