@@ -1,6 +1,7 @@
 using RegisterWorkerShell, Test, Aqua, ExplicitImports
 using ImageAxes, ImageMetadata, AxisArrays
 using SharedArrays
+using Distributed
 
 # Concrete AbstractWorker subtype for testing
 mutable struct TestWorker <: AbstractWorker
@@ -148,6 +149,29 @@ end
         slice = getindex_t(img_t, 3)
         @test size(slice) == (3, 4)
         @test slice == view(data, :, :, 3)
+    end
+
+    @testset "RemoteChannel dispatch" begin
+        rr = RemoteChannel(() -> Channel{AbstractWorker}(1))
+        put!(rr, TestWorker(1, 1.0, [1], "test"))
+
+        @test init!(rr) === nothing
+        @test close!(rr) === nothing
+        @test_throws ErrorException worker(rr, nothing, 1, Dict{Symbol,Any}())
+        @test load_mm_package(rr) === nothing
+    end
+
+    @testset "maybe_sharedarray remote pid" begin
+        pids = addprocs(1)
+        try
+            @everywhere pids using SharedArrays
+            A = [1.0, 2.0, 3.0]
+            S = maybe_sharedarray(A, pids[1])
+            @test S isa SharedArray{Float64}
+            @test S == A
+        finally
+            rmprocs(pids)
+        end
     end
 
 end
