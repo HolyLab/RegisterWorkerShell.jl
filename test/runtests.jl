@@ -13,11 +13,11 @@ end
 @testset "RegisterWorkerShell" begin
 
     @testset "ArrayDecl" begin
-        adcl = ArrayDecl(Array{Float64,2}, (3, 4))
+        adcl = ArrayDecl(Array{Float64, 2}, (3, 4))
         @test adcl.arraysize == (3, 4)
         @test eltype(adcl) == Float64
 
-        adcl3 = ArrayDecl(Array{Int32,3}, (2, 3, 4))
+        adcl3 = ArrayDecl(Array{Int32, 3}, (2, 3, 4))
         @test adcl3.arraysize == (2, 3, 4)
         @test eltype(adcl3) == Int32
     end
@@ -31,7 +31,7 @@ end
         @test !haskey(mon, :param_string)
 
         # monitor with extra variables
-        mon2 = monitor(w, (:param_scalar,), Dict{Symbol,Any}(:extra => 42))
+        mon2 = monitor(w, (:param_scalar,), Dict{Symbol, Any}(:extra => 42))
         @test mon2[:param_scalar] == 3.14
         @test mon2[:extra] == 42
 
@@ -52,7 +52,7 @@ end
         w = TestWorker(1, 2.71, [4, 5], "world")
 
         # monitor! updates all monitored fields
-        mon = Dict{Symbol,Any}(:param_scalar => 0.0, :param_array => [0, 0])
+        mon = Dict{Symbol, Any}(:param_scalar => 0.0, :param_array => [0, 0])
         monitor!(mon, w)
         @test mon[:param_scalar] == 2.71
         @test mon[:param_array] == [4, 5]
@@ -90,7 +90,7 @@ end
 
     @testset "worker (unimplemented)" begin
         w = TestWorker(1, 1.0, [1], "test")
-        @test_throws ErrorException worker(w, nothing, 1, Dict{Symbol,Any}())
+        @test_throws ErrorException worker(w, nothing, 1, Dict{Symbol, Any}())
     end
 
     @testset "workertid" begin
@@ -119,7 +119,7 @@ end
         @test size(R) == (2, 3)
 
         # ArrayDecl with bits eltype: creates SharedArray
-        adcl = ArrayDecl(Array{Float32,2}, (5, 6))
+        adcl = ArrayDecl(Array{Float32, 2}, (5, 6))
         Sa = maybe_sharedarray(adcl)
         @test Sa isa SharedArray{Float32}
         @test size(Sa) == (5, 6)
@@ -136,10 +136,12 @@ end
 
         # AxisArray with time axis: return view at tindex
         data = rand(3, 4, 5)
-        img_t = AxisArray(data,
+        img_t = AxisArray(
+            data,
             Axis{:x}(1:3),
             Axis{:y}(1:4),
-            Axis{:time}(1:5))
+            Axis{:time}(1:5)
+        )
         slice = getindex_t(img_t, 3)
         @test size(slice) == (3, 4)
         @test slice == view(data, :, :, 3)

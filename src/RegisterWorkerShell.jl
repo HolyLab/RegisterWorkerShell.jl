@@ -20,10 +20,10 @@ See `RegisterWorkerShell` for an overview of the API supported by
 abstract type AbstractWorker end
 
 # Not sure about this next type...
-struct ArrayDecl{A<:AbstractArray,N}
-    arraysize::NTuple{N,Int}
+struct ArrayDecl{A <: AbstractArray, N}
+    arraysize::NTuple{N, Int}
 end
-ArrayDecl(::Type{A}, sz) where {A<:AbstractArray} = ArrayDecl{A,ndims(A)}(sz)
+ArrayDecl(::Type{A}, sz) where {A <: AbstractArray} = ArrayDecl{A, ndims(A)}(sz)
 
 Base.eltype(::ArrayDecl{A}) where {A} = eltype(A)
 
@@ -60,19 +60,19 @@ the values into `mon`, and `monitor!(mon, :var3, var3)` for an
 internal variable `var3` that is not taken from `algorithm`. See
 `monitor!` for more detail.
 """
-function monitor(algorithm::AbstractWorker, fields::Union{NTuple{N,Symbol},Vector{Symbol}}, morevars::Dict{Symbol} = Dict{Symbol,Any}()) where N
-    mon = Dict{Symbol,Any}()
+function monitor(algorithm::AbstractWorker, fields::Union{NTuple{N, Symbol}, Vector{Symbol}}, morevars::Dict{Symbol} = Dict{Symbol, Any}()) where {N}
+    mon = Dict{Symbol, Any}()
     for f in fields
         isdefined(algorithm, f) || continue
         mon[f] = getfield(algorithm, f)
     end
-    for (k,v) in morevars
+    for (k, v) in morevars
         mon[k] = v
     end
-    mon
+    return mon
 end
-monitor(algorithms::Vector{W}, fields, morevars::Dict{Symbol} = Dict{Symbol,Any}()) where {W<:AbstractWorker} =
-    map(alg->monitor(alg, fields, morevars), algorithms) # for multi-thread
+monitor(algorithms::Vector{W}, fields, morevars::Dict{Symbol} = Dict{Symbol, Any}()) where {W <: AbstractWorker} =
+    map(alg -> monitor(alg, fields, morevars), algorithms) # for multi-thread
 
 """
 `monitor!(mon, algorithm)` updates `mon` with the current values of
@@ -90,7 +90,7 @@ function monitor!(mon::Dict{Symbol}, algorithm::AbstractWorker)
     for f in fieldnames(typeof(algorithm))
         monitor!(mon, f, getfield(algorithm, f))
     end
-    mon
+    return mon
 end
 
 function monitor!(mon, fn::Symbol, v::AbstractArray)
@@ -101,14 +101,14 @@ function monitor!(mon, fn::Symbol, v::AbstractArray)
             mon[fn] = v
         end
     end
-    mon
+    return mon
 end
 
 function monitor!(mon, fn::Symbol, v)
     if haskey(mon, fn)
         mon[fn] = v
     end
-    mon
+    return mon
 end
 
 """
@@ -162,26 +162,26 @@ load_mm_package(rr::RemoteChannel, args...) = load_mm_package(fetch(rr), args...
 
 
 ## Utility functions
-function maybe_sharedarray(A::AbstractArray, pid::Int=myid())
+function maybe_sharedarray(A::AbstractArray, pid::Int = myid())
     if pid != myid() && isbitstype(eltype(A))
-        S = SharedArray{eltype(A)}(size(A), pids=union(myid(), pid))
+        S = SharedArray{eltype(A)}(size(A), pids = union(myid(), pid))
         copyto!(S, A)
     else
         S = A
     end
-    S
+    return S
 end
 
-function maybe_sharedarray(::Type{T}, sz::Dims, pid=myid()) where T
+function maybe_sharedarray(::Type{T}, sz::Dims, pid = myid()) where {T}
     if isbitstype(T)
-        S = SharedArray{T}(sz, pids=union(myid(), pid))
+        S = SharedArray{T}(sz, pids = union(myid(), pid))
     else
         S = Array{T}(undef, sz)
     end
-    S
+    return S
 end
 
-maybe_sharedarray(adcl::ArrayDecl, pid::Int=myid()) =
+maybe_sharedarray(adcl::ArrayDecl, pid::Int = myid()) =
     maybe_sharedarray(eltype(adcl), adcl.arraysize, pid)
 
 maybe_sharedarray(obj, pid::Int = myid()) = obj
