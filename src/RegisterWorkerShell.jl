@@ -3,8 +3,8 @@ module RegisterWorkerShell
 using SimpleTraits, ImageAxes, ImageMetadata, Distributed, SharedArrays
 using AxisArrays: AxisArray, Axis
 
-export AbstractWorker, AnyValue, ArrayDecl, close!, init!, maybe_sharedarray, monitor
-export monitor_thread, monitor!, worker, workertid, workerpid, getindex_t
+export AbstractWorker, ArrayDecl, close!, init!, maybe_sharedarray, monitor
+export monitor!, worker, workertid, getindex_t
 export load_mm_package
 
 """
@@ -60,7 +60,7 @@ the values into `mon`, and `monitor!(mon, :var3, var3)` for an
 internal variable `var3` that is not taken from `algorithm`. See
 `monitor!` for more detail.
 """
-function monitor(algorithm::AbstractWorker, fields::Union{NTuple{N, Symbol}, Vector{Symbol}}, morevars::Dict{Symbol} = Dict{Symbol, Any}()) where {N}
+function monitor(algorithm::AbstractWorker, fields::Union{Tuple{Vararg{Symbol}}, Vector{Symbol}}, morevars::Dict{Symbol} = Dict{Symbol, Any}())
     mon = Dict{Symbol, Any}()
     for f in fields
         isdefined(algorithm, f) || continue

@@ -1,7 +1,7 @@
 name = "RegisterWorkerShell"
 uuid = "978d31ce-2656-11e9-22d6-b5c46a1a3d3e"
-authors = ["Tim Holy <tim.holy@gmail.com>"]
 version = "0.2.0"
+authors = ["Tim Holy <tim.holy@gmail.com>"]
 
 [deps]
 AxisArrays = "39de3d68-74b9-583c-8d2d-e117c070f3a9"
@@ -12,13 +12,19 @@ SharedArrays = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
 SimpleTraits = "699a6c99-e7fa-54fc-8d76-47d257e15c1d"
 
 [compat]
+julia = "1"
+Aqua = "0.8"
 AxisArrays = "0.3, 0.4"
+Distributed = "1"
 ImageAxes = "0.6"
 ImageMetadata = "0.9"
+SharedArrays = "1"
 SimpleTraits = "0.8, 0.9"
+Test = "1"
 
 [extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Aqua", "Test"]

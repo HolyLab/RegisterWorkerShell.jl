@@ -1,4 +1,4 @@
-using RegisterWorkerShell, Test
+using RegisterWorkerShell, Test, Aqua
 using ImageAxes, ImageMetadata, AxisArrays
 using SharedArrays
 
@@ -11,6 +11,8 @@ mutable struct TestWorker <: AbstractWorker
 end
 
 @testset "RegisterWorkerShell" begin
+    Aqua.test_all(RegisterWorkerShell)
+
 
     @testset "ArrayDecl" begin
         adcl = ArrayDecl(Array{Float64, 2}, (3, 4))
