@@ -1,7 +1,11 @@
 module RegisterWorkerShell
 
-using SimpleTraits, ImageAxes, ImageMetadata, Distributed, SharedArrays
-using AxisArrays: AxisArray, Axis
+using SimpleTraits: SimpleTraits
+using ImageMetadata: ImageMetadata
+using AxisArrays: Axis
+using Distributed: RemoteChannel, myid
+using ImageAxes: timeaxis
+using SharedArrays: SharedArray
 
 export AbstractWorker, ArrayDecl, close!, init!, maybe_sharedarray, monitor
 export monitor!, worker, workertid, getindex_t

@@ -1,4 +1,4 @@
-using RegisterWorkerShell, Test, Aqua
+using RegisterWorkerShell, Test, Aqua, ExplicitImports
 using ImageAxes, ImageMetadata, AxisArrays
 using SharedArrays
 
@@ -12,6 +12,7 @@ end
 
 @testset "RegisterWorkerShell" begin
     Aqua.test_all(RegisterWorkerShell)
+    @test_nowarn test_explicit_imports(RegisterWorkerShell)
 
 
     @testset "ArrayDecl" begin
