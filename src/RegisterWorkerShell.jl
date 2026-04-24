@@ -23,7 +23,14 @@ See `RegisterWorkerShell` for an overview of the API supported by
 """
 abstract type AbstractWorker end
 
-# Not sure about this next type...
+"""
+    ArrayDecl{A<:AbstractArray, N}
+    ArrayDecl(::Type{A}, sz) -> ArrayDecl{A,N}
+
+Declares the type and shape of an array to be allocated later (e.g., via
+`maybe_sharedarray`). Stores no data; carries element type via `eltype` and
+size via `.arraysize`.
+"""
 struct ArrayDecl{A <: AbstractArray, N}
     arraysize::NTuple{N, Int}
 end
@@ -165,7 +172,17 @@ load_mm_package(dev, args...) = nothing
 load_mm_package(rr::RemoteChannel, args...) = load_mm_package(fetch(rr), args...)
 
 
-## Utility functions
+"""
+    maybe_sharedarray(A::AbstractArray, pid=myid()) -> SharedArray or A
+    maybe_sharedarray(T::Type, sz::Dims, pid=myid()) -> SharedArray{T} or Array{T}
+    maybe_sharedarray(adcl::ArrayDecl, pid=myid()) -> SharedArray or Array
+    maybe_sharedarray(obj, pid=myid()) -> obj
+
+Return a `SharedArray` accessible from both `myid()` and `pid` when `pid != myid()`
+and the element type is a bits type; otherwise return the input (or a plain `Array`)
+unchanged. The four-method family handles an existing array, a type+size pair, an
+`ArrayDecl`, and a non-array passthrough.
+"""
 function maybe_sharedarray(A::AbstractArray, pid::Int = myid())
     if pid != myid() && isbitstype(eltype(A))
         S = SharedArray{eltype(A)}(size(A), pids = union(myid(), pid))
