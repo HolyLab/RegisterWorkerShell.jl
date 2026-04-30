@@ -71,7 +71,7 @@ the values into `mon`, and `monitor!(mon, :var3, var3)` for an
 internal variable `var3` that is not taken from `algorithm`. See
 `monitor!` for more detail.
 """
-function monitor(algorithm::AbstractWorker, fields::Union{Tuple{Vararg{Symbol}}, Vector{Symbol}}, morevars::Dict{Symbol} = Dict{Symbol, Any}())
+function monitor(algorithm::AbstractWorker, fields, morevars::AbstractDict{Symbol} = Dict{Symbol, Any}())
     mon = Dict{Symbol, Any}()
     for f in fields
         isdefined(algorithm, f) || continue
@@ -82,7 +82,7 @@ function monitor(algorithm::AbstractWorker, fields::Union{Tuple{Vararg{Symbol}},
     end
     return mon
 end
-monitor(algorithms::Vector{W}, fields, morevars::Dict{Symbol} = Dict{Symbol, Any}()) where {W <: AbstractWorker} =
+monitor(algorithms::Vector{W}, fields, morevars::AbstractDict{Symbol} = Dict{Symbol, Any}()) where {W <: AbstractWorker} =
     map(alg -> monitor(alg, fields, morevars), algorithms) # for multi-thread
 
 """
@@ -97,7 +97,7 @@ One can check whether certain parameters are being request using
 `haskey(mon, :parameter)`. This might be wise if computation of
 `parameter` is non-essential and time consuming.
 """
-function monitor!(mon::Dict{Symbol}, algorithm::AbstractWorker)
+function monitor!(mon::AbstractDict{Symbol}, algorithm::AbstractWorker)
     for f in fieldnames(typeof(algorithm))
         monitor!(mon, f, getfield(algorithm, f))
     end
@@ -193,7 +193,7 @@ function maybe_sharedarray(A::AbstractArray, pid::Int = myid())
     return S
 end
 
-function maybe_sharedarray(::Type{T}, sz::Dims, pid = myid()) where {T}
+function maybe_sharedarray(::Type{T}, sz::Dims, pid::Int = myid()) where {T}
     if isbitstype(T)
         S = SharedArray{T}(sz, pids = union(myid(), pid))
     else
