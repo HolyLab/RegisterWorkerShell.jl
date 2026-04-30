@@ -1,6 +1,6 @@
 name = "RegisterWorkerShell"
 uuid = "978d31ce-2656-11e9-22d6-b5c46a1a3d3e"
-version = "0.2.0"
+version = "1.0.0"
 authors = ["Tim Holy <tim.holy@gmail.com>"]
 
 [deps]
