@@ -1,5 +1,8 @@
 # RegisterWorkerShell
 
+[![CI](https://github.com/HolyLab/RegisterWorkerShell.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/HolyLab/RegisterWorkerShell.jl/actions/workflows/CI.yml)
+[![codecov](https://codecov.io/gh/HolyLab/RegisterWorkerShell.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/HolyLab/RegisterWorkerShell.jl)
+
 `RegisterWorkerShell` defines the abstract interface for image-registration worker
 algorithms in the HolyLab registration pipeline. It is not a registration algorithm
 itself; rather, it provides the scaffolding that concrete worker packages build on.
