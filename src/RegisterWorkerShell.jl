@@ -83,7 +83,7 @@ function monitor(algorithm::AbstractWorker, fields, morevars::AbstractDict{Symbo
     return mon
 end
 monitor(algorithms::Vector{W}, fields, morevars::AbstractDict{Symbol} = Dict{Symbol, Any}()) where {W <: AbstractWorker} =
-    map(alg -> monitor(alg, fields, morevars), algorithms) # for multi-thread
+    map(alg -> monitor(alg, fields, deepcopy(morevars)), algorithms) # per-thread buffers must not alias
 
 """
 `monitor!(mon, algorithm)` updates `mon` with the current values of

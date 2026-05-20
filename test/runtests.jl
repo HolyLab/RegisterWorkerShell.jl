@@ -50,6 +50,16 @@ end
         for i in 1:3
             @test mons[i][:param_scalar] == Float64(i)
         end
+
+        # Regression: per-worker mons must not alias morevars values. Sharing the
+        # same buffer caused races under multi-threaded drivers where every frame's
+        # output collapsed to the last writer.
+        shared_buf = [0, 0, 0]
+        mons_v = monitor(workers, (), Dict{Symbol, Any}(:buf => shared_buf))
+        @test mons_v[1][:buf] !== mons_v[2][:buf]
+        @test mons_v[2][:buf] !== mons_v[3][:buf]
+        @test mons_v[1][:buf] !== shared_buf
+        @test mons_v[1][:buf] == shared_buf
     end
 
     @testset "monitor!" begin
